@@ -7,3 +7,4 @@ Programs:
 6. battery (show battery status)
 7. dl (ls/lsd)
 8. press (touch)
+10. calen (cal)
