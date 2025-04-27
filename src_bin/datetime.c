@@ -21,6 +21,7 @@ ssize_t templates_count = 0;
 
 int main(int argc, char *argv[]) {
   int opt;
+  int default_temp = 1;
   time_t t = time(NULL);
   struct tm *now = localtime(&t);
   char buffer[256];
@@ -33,7 +34,13 @@ int main(int argc, char *argv[]) {
     case 't':
       const char *preset = find_template(optarg);
       snprintf(str_time, sizeof(str_time), "%s", preset ? preset : optarg);
+      default_temp = 0;
     }
+  }
+
+  if (default_temp) {
+    const char *preset = find_template("default");
+    snprintf(str_time, sizeof(str_time), "%s", preset);
   }
 
   replace_backslash_with_percent(str_time);
