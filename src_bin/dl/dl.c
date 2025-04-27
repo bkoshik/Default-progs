@@ -1,24 +1,20 @@
+#include <dirent.h>
 #include <grp.h>
 #include <pwd.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <dirent.h>
-#include <stdio.h>
+#include <unistd.h>
+
+int write_all = 0; // print dotfiles or no
+int show_stat = 0;
+char *separator = "  ";
+
 #include "modules.h"
 
-#define BLUE "\033[34m"
-#define YELLOW "\033[33m"
-#define GREEN "\033[32m"
-#define BOLD "\033[1m"
-#define RESET "\033[0m"
-
 int main(int argc, char *argv[]) {
-  int opt;           // options/flags
-  int write_all = 0; // print dotfiles or no
-  char *separator = "  ";
-  int show_stat = 0;
+  int opt; // options/flags
   opterr = 1;
 
   /* Creating flags */
@@ -49,8 +45,7 @@ int main(int argc, char *argv[]) {
 
   /* Opens . if there is no arguments else uses argument but no -a */
   const char *dir_path = (optind < argc) ? argv[optind] : ".";
-  int num_of_end = print_dir(dir_path, separator, write_all, show_stat);
+  int num_of_end = print_dir(dir_path);
 
   return num_of_end;
 }
-

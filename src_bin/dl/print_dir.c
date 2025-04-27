@@ -9,18 +9,14 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define BLUE "\033[34m"
-#define YELLOW "\033[33m"
-#define GREEN "\033[32m"
-#define BOLD "\033[1m"
-#define RESET "\033[0m"
+extern int write_all;
+extern int show_stat;
+extern char *separator;
 
 void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
-                    char *separator, int write_all, const char *dir_path,
-                    int show_stat);
+                    const char *dir_path);
 
-int print_dir(const char *dir_path, char *separator, int write_all,
-              int show_stat) {
+int print_dir(const char *dir_path) {
   DIR *dir = opendir(dir_path);
   struct dirent *dr;
   struct stat st;
@@ -32,7 +28,7 @@ int print_dir(const char *dir_path, char *separator, int write_all,
   }
 
   /* Reads dir */
-  processing_dir(st, dr, dir, separator, write_all, dir_path, show_stat);
+  processing_dir(st, dr, dir, dir_path);
 
   /* I think you know what do this func (closes dir) */
   closedir(dir);
@@ -41,8 +37,7 @@ int print_dir(const char *dir_path, char *separator, int write_all,
 }
 
 void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
-                    char *separator, int write_all, const char *dir_path,
-                    int show_stat) {
+                    const char *dir_path) {
   while ((dr = readdir(dir)) != NULL) {
     /* Skips dotfiles without -a */
     if (dr->d_name[0] == '.' && !write_all)

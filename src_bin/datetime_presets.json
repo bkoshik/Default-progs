@@ -1,0 +1,66 @@
+[
+  {
+    "key": "default",
+    "format": "%A\n%d.%m.%Y.%C %Z\n%H:%M:%S %p\n"
+  },
+  {
+    "key": "0",
+    "format": "%a %b %e %H:%M:%S %Z %Y"
+  },
+  {
+    "key": "1",
+    "format": "%d.%m.%Y %H:%M:%S"
+  },
+  {
+    "key": "2",
+    "format": "%Y-%m-%d %H:%M"
+  },
+  {
+    "key": "3",
+    "format": "%A, %d %B %Y"
+  },
+  {
+    "key": "4",
+    "format": "%I:%M %p"
+  },
+  {
+    "key": "5",
+    "format": "%H:%M"
+  },
+  {
+    "key": "6",
+    "format": "%d.%m"
+  },
+  {
+    "key": "7",
+    "format": "%Y"
+  },
+  {
+    "key": "b0",
+    "format": "[%H:%M:%S] %d/%m/%Y"
+  },
+  {
+    "key": "b1",
+    "format": "%Y/%m/%d - %A - %H:%M"
+  },
+  {
+    "key": "b2",
+    "format": "⌚ %H:%M | 🗓️ %d-%m-%Y"
+  },
+  {
+    "key": "t0",
+    "format": "It is %A, %B %d, %Y"
+  },
+  {
+    "key": "t1",
+    "format": "Time: %H:%M:%S"
+  },
+  {
+    "key": "t2",
+    "format": "🗓️ Today is %d.%m.%Y"
+  },
+  {
+    "key": "t3",
+    "format": "⏰ Now: %I:%M %p"
+  }
+]
