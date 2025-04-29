@@ -28,10 +28,11 @@ char *define_type_file(unsigned char d_type, const char *filename) {
   case DT_BLK:
     return "[blk]";
   }
+
+  return "[f]";
 }
 
 int has_extension(const char *filename) {
-  struct stat st;
   const char *dot = strrchr(filename, '.');
   return (dot != NULL);
 }

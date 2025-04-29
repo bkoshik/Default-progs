@@ -7,7 +7,8 @@ extern int show_stat;
 extern char *separator;
 
 int print_dir(const char *dir_path);
-void statistic(mode_t mode, struct stat st);
+void statistic(mode_t mode, struct stat st, struct dirent *dr,
+               const char *dir_path, char *target_link);
 char *define_type_file(unsigned char d_type, const char *filename);
 
 #ifndef MODULES_H

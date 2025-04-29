@@ -19,9 +19,10 @@ typedef enum {
   DarkCyan = 36,
   Cyan = 36,
 
+  AnsiValue_8 = 8,
   AnsiValue_40 = 40,
   AnsiValue_44 = 44,
-  AnsiValue_33 = 33,
+  AnsiValue_34 = 34,
   AnsiValue_172 = 172
 } Color;
 
@@ -56,8 +57,8 @@ Permission color_permission() {
   p.acl = DarkCyan;
   p.context = Cyan;
 
-  p.file = AnsiValue_40;
-  p.dir = AnsiValue_33;
+  p.file = AnsiValue_8;
+  p.dir = AnsiValue_34;
   p.symlink = AnsiValue_44;
   p.pipe = AnsiValue_44;         // darkturquoise
   p.block_device = AnsiValue_44; // darkturquoise
@@ -71,14 +72,22 @@ char *format_size(off_t size);
 const char *format_color(Color color);
 void apply_permissions_color(char perms[], Permission perm_color, char *output);
 
-void statistic(mode_t mode, struct stat st) {
+void statistic(mode_t mode, struct stat st, struct dirent *dr,
+               const char *dir_path, char *target_link) {
+
   char perms[11] = ".---------\0";
 
   if (S_ISDIR(mode))
     perms[0] = 'd';
-  else if (S_ISLNK(mode))
+  else if (S_ISLNK(mode)) {
     perms[0] = 'l';
-  else if (S_ISBLK(mode))
+    ssize_t len = readlink(dir_path, target_link, 1023);
+    if (len == -1) {
+      perror("readlink");
+      exit(1);
+    }
+    target_link[len] = '\0';
+  } else if (S_ISBLK(mode))
     perms[0] = 'b';
   else if (S_ISCHR(mode))
     perms[0] = 'c';
@@ -149,24 +158,50 @@ char *format_size(off_t size) {
 
 void apply_permissions_color(char perms[], Permission perm_color,
                              char *output) {
-  snprintf(
-      output, 256,
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m"
-      "\033[%dm%c\033[0m",
-      (perms[1] == 'r') ? perm_color.read : perm_color.no_access, perms[1],
-      (perms[2] == 'w') ? perm_color.write : perm_color.no_access, perms[2],
-      (perms[3] == 'x') ? perm_color.exec : perm_color.no_access, perms[3],
-      (perms[4] == 'r') ? perm_color.read : perm_color.no_access, perms[4],
-      (perms[5] == 'w') ? perm_color.write : perm_color.no_access, perms[5],
-      (perms[6] == 'x') ? perm_color.exec : perm_color.no_access, perms[6],
-      (perms[7] == 'r') ? perm_color.read : perm_color.no_access, perms[7],
-      (perms[8] == 'w') ? perm_color.write : perm_color.no_access, perms[8],
-      (perms[9] == 'x') ? perm_color.exec : perm_color.no_access, perms[9]);
+  int type_color = perm_color.no_access;
+  switch (perms[0]) {
+  case 'd':
+    type_color = perm_color.dir;
+    break;
+  case '.':
+    type_color = perm_color.file;
+    break;
+  case 'l':
+    type_color = perm_color.symlink;
+    break;
+  case 'c':
+    type_color = perm_color.char_device;
+    break;
+  case 'b':
+    type_color = perm_color.block_device;
+    break;
+  case 's':
+    type_color = perm_color.socket;
+    break;
+  case 'p':
+    type_color = perm_color.pipe;
+    break;
+  default:
+    type_color = perm_color.no_access;
+  }
+
+  snprintf(output, 16, "\033[%d;%dm%c\033[0m", type_color,
+           perms[0] != '.' ? 1 : 0, perms[0]);
+
+  for (int i = 1; i < 10; ++i) {
+    int color_code = 0;
+    if (perms[i] == 'r') {
+      color_code = (i % 3 == 1) ? perm_color.read : perm_color.no_access;
+    } else if (perms[i] == 'w') {
+      color_code = (i % 3 == 2) ? perm_color.write : perm_color.no_access;
+    } else if (perms[i] == 'x') {
+      color_code = (i % 3 == 0) ? perm_color.exec : perm_color.no_access;
+    } else {
+      color_code = perm_color.no_access;
+    }
+
+    // Добавляем символ с цветом
+    snprintf(output + strlen(output), 256, "\033[%dm%c\033[0m", color_code,
+             perms[i]);
+  }
 }

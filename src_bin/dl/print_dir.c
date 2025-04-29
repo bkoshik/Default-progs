@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <grp.h>
 #include <limits.h>
+#include <linux/limits.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +39,7 @@ int print_dir(const char *dir_path) {
 
 void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
                     const char *dir_path) {
+  char target_link[1024];
   while ((dr = readdir(dir)) != NULL) {
     /* Skips dotfiles without -a */
     if (dr->d_name[0] == '.' && !write_all)
@@ -46,6 +48,10 @@ void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
     char full_path[PATH_MAX + 1];
     snprintf(full_path, sizeof(full_path), "%s/%s", dir_path, dr->d_name);
 
+    char path_link[PATH_MAX + 1];
+    if (realpath(full_path, path_link) == NULL)
+      perror("realpath");
+
     // Получаем информацию о файле
     if (stat(full_path, &st) == -1) {
       perror("stat failed");
@@ -53,7 +59,7 @@ void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
     }
 
     if (show_stat)
-      statistic(st.st_mode, st);
+      statistic(st.st_mode, st, dr, path_link, target_link);
 
     /* I know below this so many write(), but it is for compatibility with POSIX
      * and low-level */
@@ -65,6 +71,10 @@ void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
     write(STDOUT_FILENO, dr->d_name, strlen(dr->d_name));
     if (dr->d_type == DT_DIR) /* Writes formatted dir */
       write(STDOUT_FILENO, "/", 1);
+    if (dr->d_type == DT_LNK) {
+      write(STDOUT_FILENO, " ⇒ ", 6);
+      write(STDOUT_FILENO, path_link, strlen(path_link));
+    }
     write(STDOUT_FILENO, RESET, strlen(RESET));
     write(STDOUT_FILENO, separator, strlen(separator));
   }
