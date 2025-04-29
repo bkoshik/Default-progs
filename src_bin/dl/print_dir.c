@@ -71,7 +71,7 @@ void processing_dir(struct stat st, struct dirent *dr, DIR *dir,
     write(STDOUT_FILENO, dr->d_name, strlen(dr->d_name));
     if (dr->d_type == DT_DIR) /* Writes formatted dir */
       write(STDOUT_FILENO, "/", 1);
-    if (dr->d_type == DT_LNK) {
+    if (dr->d_type == DT_LNK && show_stat) {
       write(STDOUT_FILENO, " ⇒ ", 6);
       write(STDOUT_FILENO, path_link, strlen(path_link));
     }
