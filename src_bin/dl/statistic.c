@@ -7,76 +7,46 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
-typedef enum {
-  DarkGreen = 32, // ANSI
-  DarkYellow = 33,
-  DarkRed = 31,
-  AnsiValue_5 = 5,
-  Grey = 2,
-  AnsiValue_6 = 6,
-  DarkCyan = 36,
-  Cyan = 36,
-
-  AnsiValue_8 = 8,
-  AnsiValue_40 = 40,
-  AnsiValue_44 = 44,
-  AnsiValue_34 = 34,
-  AnsiValue_172 = 172
-} Color;
-
-typedef struct {
-  Color read;
-  Color write;
-  Color exec;
-  Color exec_sticky;
-  Color no_access;
-  Color octal;
-  Color acl;
-  Color context;
-
-  Color file;
-  Color dir;
-  Color symlink;
-  Color pipe;         // darkturquoise
-  Color block_device; // darkturquoise
-  Color char_device;  // orange3
-  Color socket;       // darkturquoise
-  Color special;      // darkturquoise
-} Permission;
-
-Permission color_permission() {
-  Permission p;
-  p.read = DarkGreen;
-  p.write = DarkYellow;
-  p.exec = DarkRed;
-  p.exec_sticky = AnsiValue_5;
-  p.no_access = Grey;
-  p.octal = AnsiValue_6;
-  p.acl = DarkCyan;
-  p.context = Cyan;
-
-  p.file = AnsiValue_8;
-  p.dir = AnsiValue_34;
-  p.symlink = AnsiValue_44;
-  p.pipe = AnsiValue_44;         // darkturquoise
-  p.block_device = AnsiValue_44; // darkturquoise
-  p.char_device = AnsiValue_172; // orange3
-  p.socket = AnsiValue_44;       // darkturquoise
-  p.special = AnsiValue_44;      // darkturquoise
-  return p;
-}
-
+void perms(char *perms, mode_t mode, char *target_link, const char *dir_path);
 char *format_size(off_t size);
-const char *format_color(Color color);
+const char *format_color(Color_Perms color);
 void apply_permissions_color(char perms[], Permission perm_color, char *output);
 
 void statistic(mode_t mode, struct stat st, struct dirent *dr,
                const char *dir_path, char *target_link) {
+  char permisions[11] = ".---------\0";
+  perms(permisions, mode, target_link, dir_path);
 
-  char perms[11] = ".---------\0";
+  char *size = format_size(st.st_size);
 
+  char color_buf_perm[128];
+  apply_permissions_color(permisions, color_permission(), color_buf_perm);
+
+  struct passwd *pw = getpwuid(st.st_uid);
+  struct group *gr = getgrgid(st.st_gid);
+
+  char *pw_name = pw ? pw->pw_name : "unknown";
+  char *gr_name = gr ? gr->gr_name : "unknown";
+
+  User_Group user_color = color_user_group();
+  char user_color_buf[1024];
+
+  snprintf(user_color_buf, sizeof(user_color_buf),
+           "\033[38;5;%dm%s\033[0m : \033[%dm%s\033[0m", user_color.user,
+           pw_name, user_color.group, gr_name);
+
+  write(STDOUT_FILENO, color_buf_perm, strlen(color_buf_perm));
+  write(STDOUT_FILENO, " ", 1);
+  write(STDOUT_FILENO, user_color_buf, strlen(user_color_buf));
+  write(STDOUT_FILENO, " ", 1);
+  write(STDOUT_FILENO, size, strlen(size));
+  write(STDOUT_FILENO, " ", 1);
+}
+
+void perms(char *perms, mode_t mode, char *target_link, const char *dir_path) {
   if (S_ISDIR(mode))
     perms[0] = 'd';
   else if (S_ISLNK(mode)) {
@@ -119,27 +89,6 @@ void statistic(mode_t mode, struct stat st, struct dirent *dr,
     perms[8] = 'w';
   if (mode & S_IXOTH)
     perms[9] = 'x';
-
-  char *size = format_size(st.st_size);
-
-  char color_buf_perm[128];
-  Permission perm_color = color_permission();
-  apply_permissions_color(perms, perm_color, color_buf_perm);
-
-  struct passwd *pw = getpwuid(st.st_uid);
-  struct group *gr = getgrgid(st.st_gid);
-
-  char *pw_name = pw ? pw->pw_name : "unknown";
-  char *gr_name = gr ? gr->gr_name : "unknown";
-
-  write(STDOUT_FILENO, color_buf_perm, strlen(color_buf_perm));
-  write(STDOUT_FILENO, " ", 1);
-  write(STDOUT_FILENO, pw_name, strlen(pw_name));
-  write(STDOUT_FILENO, ":", 1);
-  write(STDOUT_FILENO, gr_name, strlen(gr_name));
-  write(STDOUT_FILENO, " ", 1);
-  write(STDOUT_FILENO, size, strlen(size));
-  write(STDOUT_FILENO, " ", 1);
 }
 
 char *format_size(off_t size) {
