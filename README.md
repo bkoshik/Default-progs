@@ -8,3 +8,4 @@ Programs:
 7. dl (ls/lsd)
 8. press (touch)
 10. calen (cal)
+11. mnts (show mounts)
