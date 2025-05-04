@@ -7,5 +7,6 @@ Programs:
 6. battery (show battery status)
 7. dl (ls/lsd)
 8. press (touch)
-10. calen (cal)
-11. mnts (show mounts)
+9. calen (cal)
+10. mnts (show mounts)
+11. note (write note) TO USE IT CHANGE "\[USER\]" IN DEFINES TO YOUR USERNAME
