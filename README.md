@@ -11,3 +11,4 @@ Programs:
 10. mnts (show mounts)
 11. note (write note) TO USE IT CHANGE "\[USER\]" IN DEFINES TO YOUR USERNAME
 12. view (watch)
+13. calse (shell)
